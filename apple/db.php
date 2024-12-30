@@ -1,6 +1,6 @@
 // db.php
 <?php
-$host = 'localhost';
+$host = 'https://brics-pay-default-rtdb.firebaseio.com/';
 $dbname = 'bricspay';  
 $username = 'root';  
 $password = '';  

@@ -72,7 +72,7 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
   const wallet = useTonWallet();
   const userAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
-  const recipientAddress = "UQABgC5XQOlTosmLBA5IcQDcKkI3E4zAlBqyYYn75dGC9fOm";
+  const recipientAddress = "UQBykGhRyRohbxDbtGrd7CWZAqgE0VIhObOq6lqlh1IdYblQ";
   const [showGreenAlert, setShowGreenAlert] = useState(false);
   const [showRedAlert, setShowRedAlert] = useState(false);
 
@@ -245,3 +245,4 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
 };
 
 export default UpgradeMiner;
+

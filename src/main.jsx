@@ -31,7 +31,7 @@ const Main = () => {
   }
 
   return (
-    <TonConnectUIProvider manifestUrl='your App url here /tonconnect-manifest.json'>
+    <TonConnectUIProvider manifestUrl='https://montasir-hasan.github.io/bricspay/tonconnect-manifest.json'>
       <BrowserRouter>
         <App />
       </BrowserRouter>

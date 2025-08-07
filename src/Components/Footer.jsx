@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { FaHome,  FaUserFriends, FaFileInvoiceDollar, FaClipboardList } from 'react-icons/fa';
+import { FaHome,  FaUserFriends, FaFileInvoiceDollar, FaClipboardList, FaWallet } from 'react-icons/fa';
 
 const Footer = () => {
   return (
@@ -40,6 +40,14 @@ const Footer = () => {
             <FaFileInvoiceDollar className=' w-6 h-6' />
             <span className='text-[12px] text-white mt-1 font-bold'>History</span>
           </NavLink>
+           <NavLink 
+            className={({ isActive }) => 
+              `flex flex-col items-center text-center ${isActive ? 'text-[#00A9FF]' : 'text-white opacity-50'}`} 
+            to="/wallet"
+          >
+            <FaWallet className=' w-6 h-6' />
+            <span className='text-[12px] text-white mt-1 font-bold'>Wallet</span>
+          </NavLink>
         </div>
       </div>
     </footer>
@@ -47,3 +55,4 @@ const Footer = () => {
 }
 
 export default Footer;
+

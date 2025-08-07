@@ -2,7 +2,7 @@ import Footer from "../Components/Footer";
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../Components/BackButton';
-import { db } from '../database/firebase.js';
+import { db } from '../database/firebase';
 import { collection, getDocs, doc, updateDoc, increment, getDoc } from "@firebase/firestore";
 import { useTonCoin } from '../Components/Context/TonCoinContext.jsx';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -219,3 +219,4 @@ const Ref = () => {
 };
 
 export default Ref;
+

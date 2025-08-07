@@ -6,7 +6,7 @@ import ModalTON from './modal/Withdrawton';
 import ModalSHIB from './modal/Withdrawshib';
 import { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc } from "@firebase/firestore"; 
-import { db } from "../database/firebase.js";
+import { db } from "../database/firebase";
 
 const Navbar = () => {
   const { tonBalance, setTonBalance } = useTonCoin();
@@ -174,3 +174,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

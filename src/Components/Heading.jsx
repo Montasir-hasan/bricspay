@@ -3,7 +3,7 @@ import mainlogo from '../assets/fan.png';
 import { useState, useEffect } from "react";
 import '../App.css';
 import { doc, getDoc, updateDoc, collection, addDoc } from "@firebase/firestore"; 
-import { db } from "../database/firebase.js";
+import { db } from "../database/firebase";
 import "animate.css";
 import overlayImage from '../assets/ton.png';
 import UpgradeMiner from "./modal/UpgradeMiner.jsx";
@@ -139,3 +139,4 @@ const Heading = () => {
 };
 
 export default Heading;
+

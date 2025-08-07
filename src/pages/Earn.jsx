@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { db } from './firebase'; // adjust path
+import { db } from '../database/firebase'; // adjust path
 import { collection, addDoc } from 'firebase/firestore';
 
 function Earn() {

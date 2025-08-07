@@ -4,7 +4,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Ref from './pages/Ref';
 import Earn from './pages/Earn';
-
+import Wallet from './pages/Wallet';
 
 
 const AppRoutes = () => {
@@ -15,12 +15,13 @@ const AppRoutes = () => {
       <Route path="/about" element={<About />} />
       <Route path="/ref" element={<Ref />} />
       <Route path="/earn" element={<Earn />} />
-  
+      <Route path="/wallet" element={<Wallet />} />
     </Routes>
    
   );
 };
 
 export default AppRoutes;
+
 
 

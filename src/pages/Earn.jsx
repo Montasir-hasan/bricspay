@@ -4,9 +4,9 @@ import BackButton from '../Components/BackButton';
 import { useShibCoin } from "../Components/Context/ShibCoinContext.jsx";
 import '../App.css';
 import { useState, useEffect } from 'react';
-import { FaCheckCircle, FaAngleRight  } from 'react-icons/fa';
+import { FaCheckCircle, FaAngleRight } from 'react-icons/fa';
 import shib from '../assets/shib.png';
-import { doc, getDoc, updateDoc, increment } from "@firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, increment } from "firebase/firestore";
 import { db } from '../database/firebase';
 
 const Earn = () => {
@@ -20,6 +20,13 @@ const Earn = () => {
   });
   const [userId, setUserId] = useState(null);
   const [remainingTasks, setRemainingTasks] = useState(0);
+
+  const tasks = [
+    { task: 'telegramJoin', link: 'https://t.me/+laGb7cp_p9MwZGM0', label: 'Join Telegram Earn', reward: 5000, requiredInvites: 0 },
+    { task: 'twitter', link: '', label: 'Follow Twitter Earn', reward: 0, requiredInvites: 0 },
+    { task: 'instagram', link: '', label: 'Follow Instagram Earn', reward: 0, requiredInvites: 0 },
+    { task: 'youtube', link: '', label: 'Subscribe YouTube Earn', reward: 0, requiredInvites: 0 },
+  ];
 
   useEffect(() => {
     const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
@@ -35,8 +42,12 @@ const Earn = () => {
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        setShibBalance(userData.shibCoinBalance);
+        setShibBalance(userData.shibCoinBalance || 0);
         setCompletedTasks(userData.completedTasks || {});
+      } else {
+        // If user document doesn't exist, initialize balance and tasks
+        setShibBalance(0);
+        setCompletedTasks({});
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -50,7 +61,7 @@ const Earn = () => {
   }, [completedTasks]);
 
   const handleBackButtonClick = () => {
-    navigate('/'); 
+    navigate('/');
   };
 
   const handleTaskClick = async (task, coins) => {
@@ -67,24 +78,30 @@ const Earn = () => {
   const updateDatabase = async (task, coins) => {
     if (!userId) return;
 
+    const userDocRef = doc(db, 'miningapp', userId.toString());
+
     try {
-      const userDocRef = doc(db, 'miningapp', userId.toString());
-      await updateDoc(userDocRef, {
-        shibCoinBalance: increment(coins),
-        [`completedTasks.${task}`]: true
-      });
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        // Update existing document
+        await updateDoc(userDocRef, {
+          shibCoinBalance: increment(coins),
+          [`completedTasks.${task}`]: true
+        });
+      } else {
+        // Create new document
+        await setDoc(userDocRef, {
+          shibCoinBalance: coins,
+          completedTasks: {
+            [task]: true
+          }
+        });
+      }
     } catch (error) {
-      console.error("Error updating user data:", error);
+      console.error("Error updating/creating user document:", error);
     }
   };
-
-  const tasks = [
-    { task: 'telegramJoin', link: 'https://t.me/+laGb7cp_p9MwZGM0', label: 'Join Telegram Earn', reward: 5000, requiredInvites: 0 },
-    { task: 'twitter', link: '', label: 'Follow Twitter Earn', reward: 0, requiredInvites: 0 },
-    { task: 'instagram', link: '', label: 'Follow Instagram Earn', reward: 0, requiredInvites: 0 },
-    { task: 'youtube', link: '', label: 'Subscribe YouTube Earn', reward: 0, requiredInvites: 0 },
-    
-  ];
 
   return (
     <div className="w-full h-full min-h-screen bg-black pt-4">
@@ -114,7 +131,7 @@ const Earn = () => {
                 rel="noopener noreferrer"
                 className={`text-white text-[13px] font-bold ${completedTasks[task] ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => handleTaskClick(task, reward)}
-                disabled={completedTasks[task] }
+                disabled={completedTasks[task]}
               >
                 {label}
               </a>
@@ -124,7 +141,7 @@ const Earn = () => {
               </div>
             </div>
             <div>
-              {completedTasks[task] ? <FaCheckCircle className="text-green-500" /> : <FaAngleRight  className="text-white" />}
+              {completedTasks[task] ? <FaCheckCircle className="text-green-500" /> : <FaAngleRight className="text-white" />}
             </div>
           </div>
         ))}
@@ -137,4 +154,3 @@ const Earn = () => {
 };
 
 export default Earn;
-

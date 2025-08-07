@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import logo from '../../assets/ton.png';
 import { doc, getDoc, updateDoc, addDoc, collection } from "@firebase/firestore";
-import { db } from "../../database/firebase.js";
+import { db } from "../../database/firebase";
 
 const ModalTON = ({ isVisible, onClose, onMaxClick, amount, setAmount }) => {
   const [walletAddress, setWalletAddress] = useState('');
@@ -154,3 +154,4 @@ const ModalTON = ({ isVisible, onClose, onMaxClick, amount, setAmount }) => {
 };
 
 export default ModalTON;
+

@@ -2,7 +2,7 @@ import Footer from "../Components/Footer";
 import BackButton from "../Components/BackButton";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { db } from "../database/firebase.js";
+import { db } from "../database/firebase";
 import { collection, query, where, getDocs } from "@firebase/firestore";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { TbReceiptDollar } from "react-icons/tb";
@@ -83,3 +83,4 @@ const About = () => {
 };
 
 export default About;
+

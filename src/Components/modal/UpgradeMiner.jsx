@@ -9,6 +9,7 @@ import power from '../../assets/power.webp';
 import { doc, getDoc, updateDoc } from "@firebase/firestore";
 import { db } from "../../database/firebase";
 import { TonConnectButton, useTonWallet, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import '../App.css';
 
 const miners = [
   {
@@ -245,5 +246,6 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
 };
 
 export default UpgradeMiner;
+
 
 

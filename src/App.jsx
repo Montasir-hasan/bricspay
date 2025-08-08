@@ -47,10 +47,10 @@ function AppLogic() {
 
       // =================================================================
       //  MINING SPEED CONTROL
-      //  To make mining slower, INCREASE the difficultyFactor number.
-      //  Example: 100 makes it 100x slower. 1000 makes it 1000x slower.
+      //  This value is now set to 10000 to make the mining speed 
+      //  100 times slower than the previous version.
       // =================================================================
-      const difficultyFactor = 10000; // <-- ADJUST THIS NUMBER TO BALANCE YOUR GAME
+      const difficultyFactor = 10000; // <-- SPEED IS NOW 100x SLOWER
       const dailyProfitFormula = minerSpeed / 100;
       const minedPerSecond = (dailyProfitFormula / difficultyFactor) / 86400; // 86400 seconds in a day
       // =================================================================

@@ -2,7 +2,7 @@ import { useTonCoin } from "./Context/TonCoinContext.jsx";
 import mainlogo from '../assets/fan.png';
 import { useState, useEffect } from "react";
 import '../App.css';
-import { doc, getDoc, updateDoc, collection, addDoc, setDoc } from "@firebase/firestore"; 
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc } from "@firebase/firestore"; 
 import { db } from "../database/firebase";
 import "animate.css";
 import overlayImage from '../assets/ton.png';
@@ -18,11 +18,12 @@ const Heading = () => {
   const [showGreenAlert, setShowGreenAlert] = useState(false);
   const [isUpgradeModalVisible, setIsUpgradeModalVisible] = useState(false);
 
-  // Fetch user data initially and every 5 seconds
+  // Fetch or create user data initially and every 5 seconds
   useEffect(() => {
     const fetchCoinBalance = async () => {
       try {
         const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        console.log("Telegram User ID:", id);
         if (!id) return;
 
         setTelegramUserId(id);
@@ -31,17 +32,16 @@ const Heading = () => {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
+          console.log("User data fetched:", userData);
           const currentBalance = userData.tonCoinBalance || 0;
           const fetchedCounter = userData.counter || 0; 
           const userMinerSpeed = userData.minerSpeed || 2;
 
           setTonBalance(currentBalance);
           setMinerSpeed(userMinerSpeed);
-
-          // Update local counter only if Firestore counter is greater
           setCounter(prevCounter => (fetchedCounter > prevCounter ? fetchedCounter : prevCounter));
         } else {
-          // New user doc creation to avoid errors on update later
+          console.log("User document not found, creating a new one...");
           await setDoc(userDocRef, {
             tonCoinBalance: 0,
             counter: 0,
@@ -53,7 +53,7 @@ const Heading = () => {
           setMinerSpeed(2);
         }
       } catch (error) {
-        console.error("Failed to fetch coin balance:", error);
+        console.error("Failed to fetch or create user document:", error);
       }
     };
 
@@ -78,6 +78,7 @@ const Heading = () => {
     const saveInterval = setInterval(async () => {
       try {
         const userRef = doc(db, 'miningapp', telegramUserId.toString());
+        console.log("Saving mining data:", { counter, minerSpeed });
         await updateDoc(userRef, {
           counter: parseFloat(counter.toFixed(9)),
           minerSpeed,
@@ -95,8 +96,11 @@ const Heading = () => {
   const handleClaim = async () => {
     try {
       const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      if (!id) return;
-
+      if (!id) {
+        setShowRedAlert(true);
+        setTimeout(() => setShowRedAlert(false), 2000);
+        return;
+      }
       setTelegramUserId(id);
 
       if (counter >= 0.4) {
@@ -109,6 +113,7 @@ const Heading = () => {
           await updateDoc(userRef, {
             tonCoinBalance: parseFloat(newBalance.toFixed(9)),
             counter: 0,
+            lastUpdated: new Date().toISOString(),
           });
 
           setTonBalance(newBalance);

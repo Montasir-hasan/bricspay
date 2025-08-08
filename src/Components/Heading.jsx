@@ -50,7 +50,7 @@ const Heading = () => {
   // Increment counter locally every second by minerSpeed * 0.001
   useEffect(() => {
     const miningInterval = setInterval(() => {
-      setCounter(prev => prev + minerSpeed * 0.001);
+      setCounter(prev => prev + minerSpeed * 0.00001);
     }, 1000);
 
     return () => clearInterval(miningInterval);
@@ -157,3 +157,4 @@ const Heading = () => {
 };
 
 export default Heading;
+

@@ -49,7 +49,7 @@ const Heading = () => {
               const lastSaved = new Date(localMiningData.lastSaved);
               const now = new Date();
               const secondsPassed = (now - lastSaved) / 1000;
-              offlineCounterIncrement = secondsPassed * userData.minerSpeed * 0.00001;
+              offlineCounterIncrement = secondsPassed * userData.minerSpeed * 0.000000001;
             } catch (e) {
               console.warn("Failed to parse local mining data:", e);
             }
@@ -244,4 +244,5 @@ const Heading = () => {
 };
 
 export default Heading;
+
 

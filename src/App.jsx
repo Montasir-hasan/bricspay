@@ -50,7 +50,7 @@ function AppLogic() {
       //  This value is now set to 10000 to make the mining speed 
       //  100 times slower than the previous version.
       // =================================================================
-      const difficultyFactor = 10000; // <-- SPEED IS NOW 100x SLOWER
+      const difficultyFactor = 100000; // <-- SPEED IS NOW 1000x SLOWER
       const dailyProfitFormula = minerSpeed / 100;
       const minedPerSecond = (dailyProfitFormula / difficultyFactor) / 86400; // 86400 seconds in a day
       // =================================================================

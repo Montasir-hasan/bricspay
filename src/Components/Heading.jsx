@@ -123,7 +123,7 @@ const Heading = () => {
       } catch (error) {
         console.error("Failed to save mining data:", error);
       }
-    }, 15000);
+    }, 43200000);
 
     return () => clearInterval(saveInterval);
   }, [telegramUserId]);
@@ -244,3 +244,4 @@ const Heading = () => {
 };
 
 export default Heading;
+

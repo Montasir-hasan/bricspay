@@ -1,6 +1,6 @@
 import { useTonCoin } from "./Context/TonCoinContext.jsx";
 import mainlogo from '../assets/fan.png';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import '../App.css';
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc } from "@firebase/firestore"; 
 import { db } from "../database/firebase";
@@ -8,6 +8,8 @@ import "animate.css";
 import overlayImage from '../assets/ton.png';
 import UpgradeMiner from "./modal/UpgradeMiner.jsx";
 import { useCounter } from '../Components/Context/CounterContext.jsx';
+
+const LOCAL_STORAGE_KEY = "miningData";
 
 const Heading = () => {
   const { setTonBalance } = useTonCoin();
@@ -17,13 +19,18 @@ const Heading = () => {
   const [showRedAlert, setShowRedAlert] = useState(false);
   const [showGreenAlert, setShowGreenAlert] = useState(false);
   const [isUpgradeModalVisible, setIsUpgradeModalVisible] = useState(false);
+  
+  // Ref to avoid stale closures inside intervals
+  const counterRef = useRef(counter);
+  counterRef.current = counter;
+  const minerSpeedRef = useRef(minerSpeed);
+  minerSpeedRef.current = minerSpeed;
 
-  // Fetch or create user data initially and every 5 seconds
+  // Load user data + localStorage data on mount
   useEffect(() => {
     const fetchCoinBalance = async () => {
       try {
         const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-        console.log("Telegram User ID:", id);
         if (!id) return;
 
         setTelegramUserId(id);
@@ -32,16 +39,32 @@ const Heading = () => {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          console.log("User data fetched:", userData);
+
+          // Calculate offline mining increase from localStorage timestamp
+          const localMiningDataStr = localStorage.getItem(LOCAL_STORAGE_KEY);
+          let offlineCounterIncrement = 0;
+          if (localMiningDataStr) {
+            try {
+              const localMiningData = JSON.parse(localMiningDataStr);
+              const lastSaved = new Date(localMiningData.lastSaved);
+              const now = new Date();
+              const secondsPassed = (now - lastSaved) / 1000;
+              offlineCounterIncrement = secondsPassed * userData.minerSpeed * 0.00001;
+            } catch (e) {
+              console.warn("Failed to parse local mining data:", e);
+            }
+          }
+
+          const baseCounter = userData.counter || 0;
+          const totalCounter = baseCounter + offlineCounterIncrement;
           const currentBalance = userData.tonCoinBalance || 0;
-          const fetchedCounter = userData.counter || 0; 
           const userMinerSpeed = userData.minerSpeed || 2;
 
           setTonBalance(currentBalance);
           setMinerSpeed(userMinerSpeed);
-          setCounter(prevCounter => (fetchedCounter > prevCounter ? fetchedCounter : prevCounter));
+          setCounter(totalCounter);
         } else {
-          console.log("User document not found, creating a new one...");
+          // New user doc creation
           await setDoc(userDocRef, {
             tonCoinBalance: 0,
             counter: 0,
@@ -58,41 +81,54 @@ const Heading = () => {
     };
 
     fetchCoinBalance();
-    const interval = setInterval(fetchCoinBalance, 5000);
-    return () => clearInterval(interval);
   }, [setTonBalance, setCounter]);
 
-  // Increment counter locally every second by minerSpeed * 0.00001 (unlimited increment)
+  // Mining increment every second (live mining)
   useEffect(() => {
     const miningInterval = setInterval(() => {
-      setCounter(prev => prev + minerSpeed * 0.00001);
+      setCounter(prev => prev + minerSpeedRef.current * 0.00001);
     }, 1000);
 
     return () => clearInterval(miningInterval);
-  }, [minerSpeed, setCounter]);
+  }, []);
 
-  // Save mining progress to Firestore every 15 seconds
+  // Save mining progress every 15 seconds (Firestore + localStorage)
   useEffect(() => {
     if (!telegramUserId) return;
 
     const saveInterval = setInterval(async () => {
       try {
         const userRef = doc(db, 'miningapp', telegramUserId.toString());
-        console.log("Saving mining data:", { counter, minerSpeed });
+        const updatedCounter = parseFloat(counterRef.current.toFixed(9));
+        const updatedMinerSpeed = minerSpeedRef.current;
+
+        // Save to Firestore
         await updateDoc(userRef, {
-          counter: parseFloat(counter.toFixed(9)),
-          minerSpeed,
+          counter: updatedCounter,
+          minerSpeed: updatedMinerSpeed,
           lastUpdated: new Date().toISOString(),
         });
+
+        // Save to localStorage
+        localStorage.setItem(
+          LOCAL_STORAGE_KEY,
+          JSON.stringify({
+            counter: updatedCounter,
+            minerSpeed: updatedMinerSpeed,
+            lastSaved: new Date().toISOString(),
+          })
+        );
+
+        console.log("Mining data saved:", { counter: updatedCounter, minerSpeed: updatedMinerSpeed });
       } catch (error) {
         console.error("Failed to save mining data:", error);
       }
     }, 15000);
 
     return () => clearInterval(saveInterval);
-  }, [telegramUserId, counter, minerSpeed]);
+  }, [telegramUserId]);
 
-  // Handle claim button click: adds mined tokens to balance, resets counter
+  // Claim handler - reset counter and add to balance
   const handleClaim = async () => {
     try {
       const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
@@ -118,6 +154,9 @@ const Heading = () => {
 
           setTonBalance(newBalance);
           setCounter(0);
+
+          // Clear localStorage mining data as counter reset
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
 
           setShowGreenAlert(true);
           setTimeout(() => setShowGreenAlert(false), 2000);

@@ -10,7 +10,6 @@ import LoadingScreen from './Components/Loader.jsx';
 
 // This component holds the persistent logic and doesn't render anything itself
 function AppLogic() {
-  // We still get minerSpeed to display it, even though we won't use it in calculations
   const { setCounter, setMinerSpeed, setTelegramUserId, counter, minerSpeed, telegramUserId } = useCounter();
   const lastUpdateTimeRef = useRef(Date.now());
 
@@ -35,7 +34,7 @@ function AppLogic() {
     return () => unsubscribe();
   }, [setCounter, setMinerSpeed, setTelegramUserId]);
 
-  // 2. Simulate mining in the background with a FIXED speed
+  // 2. Simulate mining in the background with PRECISION MATH
   useEffect(() => {
     if (!telegramUserId) return;
 
@@ -47,24 +46,32 @@ function AppLogic() {
       if (elapsedSeconds > maxOfflineSeconds) {
         elapsedSeconds = maxOfflineSeconds;
       }
-
+      
       // =================================================================
-      //  FIXED MINING SPEED
-      //  The mining rate is now a constant value and ignores the user's
-      //  minerSpeed (Ghz). This provides exactly 0.000000001 TON per second.
+      //  PRECISION MATH FIX FOR VERY SLOW MINING SPEED
       // =================================================================
+      // The fixed rate per second.
       const minedPerSecond = 0.000000001;
-      // =================================================================
-
       const newMinedAmount = elapsedSeconds * minedPerSecond;
-
-      setCounter(prevCounter => prevCounter + newMinedAmount);
+      
+      // Update state with a function to ensure we always have the latest value
+      setCounter(prevCounter => {
+        // To avoid JavaScript precision errors with small decimals, we work with integers
+        // Multiply both numbers by 10^9 to make them whole, add them, then divide back.
+        const prevCounterAsInteger = Math.round(prevCounter * 1e9);
+        const newMinedAsInteger = Math.round(newMinedAmount * 1e9);
+        
+        const newTotalAsInteger = prevCounterAsInteger + newMinedAsInteger;
+        
+        return newTotalAsInteger / 1e9; // Convert back to a decimal
+      });
+      // =================================================================
+      
       lastUpdateTimeRef.current = now;
     }, 1000); // This loop runs every second
 
-    // We remove minerSpeed from the dependency array as it no longer affects the calculation
     return () => clearInterval(interval);
-  }, [telegramUserId, setCounter]);
+  }, [telegramUserId, setCounter]); // minerSpeed is removed from dependencies as it's not used in calculation
 
   // 3. Periodically save progress to the database
   useEffect(() => {

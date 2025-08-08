@@ -5,7 +5,7 @@ import { getFirestore } from 'firebase/firestore';
 // Your Firebase project configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDWyrP8xniw9kUJUBVCdhEIRs3Mw-BATj0",
-  authDomain: "brics-pay.firebaseapp.com",
+  authDomain: "",
   projectId: "brics-pay",
   storageBucket: "brics-pay.firebasestorage.app",
   messagingSenderId: "516647996624",
@@ -21,3 +21,4 @@ const db = getFirestore(app);
 
 // Export Firestore instance for use in your app
 export { db };
+

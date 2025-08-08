@@ -5,8 +5,8 @@ import './Components/amination.css';
 import AppRoutes from './Routes';
 import { TonCoinProvider } from './Components/Context/TonCoinContext';
 import { ShibCoinProvider } from './Components/Context/ShibCoinContext';
-import { CounterProvider, useCounter } from './Components/Context/CounterContext'; // ✅ IMPORT useCounter
-import LoadingScreen from './Components/Loader.jsx'; // ✅ IMPORT LoadingScreen
+import { CounterProvider, useCounter } from './Components/Context/CounterContext';
+import LoadingScreen from './Components/Loader.jsx';
 
 // This component holds the persistent logic and doesn't render anything itself
 function AppLogic() {
@@ -14,6 +14,7 @@ function AppLogic() {
   const lastUpdateTimeRef = useRef(Date.now());
 
   // 1. Set up real-time listener for user data from Firebase
+  // This hook runs once and keeps the connection open to receive live updates.
   useEffect(() => {
     const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
     if (!userId) return;
@@ -31,31 +32,44 @@ function AppLogic() {
       }
     });
 
+    // This cleans up the listener when the app is fully closed.
     return () => unsubscribe();
   }, [setCounter, setMinerSpeed, setTelegramUserId]);
 
   // 2. Simulate mining in the background
+  // This logic runs continuously as long as the app is open.
   useEffect(() => {
-    if (!telegramUserId) return;
+    if (!telegramUserId) return; // Wait for user ID before starting
 
     const interval = setInterval(() => {
       const now = Date.now();
       const elapsedSeconds = (now - lastUpdateTimeRef.current) / 1000;
-      const minedPerSecond = (minerSpeed / 100) / 86400;
+
+      // =================================================================
+      //  MINING SPEED CONTROL
+      //  To make mining slower, INCREASE the difficultyFactor number.
+      //  Example: 100 makes it 100x slower. 1000 makes it 1000x slower.
+      // =================================================================
+      const difficultyFactor = 100; // <-- ADJUST THIS NUMBER TO BALANCE YOUR GAME
+      const dailyProfitFormula = minerSpeed / 100;
+      const minedPerSecond = (dailyProfitFormula / difficultyFactor) / 86400; // 86400 seconds in a day
+      // =================================================================
+
       const newMinedAmount = elapsedSeconds * minedPerSecond;
 
       setCounter(prevCounter => prevCounter + newMinedAmount);
       lastUpdateTimeRef.current = now;
-    }, 1000);
+    }, 1000); // This loop runs every second
 
-    return () => clearInterval(interval);
+    return () => clearInterval(interval); // Cleanup on component change
   }, [telegramUserId, minerSpeed, setCounter]);
 
-  // 3. Periodically save progress to the database
+  // 3. Periodically save progress to the database to prevent data loss
   useEffect(() => {
     if (!telegramUserId) return;
 
     const saveProgress = async () => {
+      // We check the counter from the state to save the latest value
       if (counter > 0) {
         const userRef = doc(db, 'miningapp', telegramUserId);
         await updateDoc(userRef, {
@@ -65,39 +79,42 @@ function AppLogic() {
       }
     };
     
-    // Save every 10 seconds
+    // Save progress every 10 seconds
     const saveInterval = setInterval(saveProgress, 10000);
     
-    // Save when the user tries to close the app
+    // Also save progress right before the user closes the app
     const handleBeforeUnload = () => saveProgress();
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // Cleanup function to stop the interval and listener
     return () => {
       clearInterval(saveInterval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      saveProgress();
+      saveProgress(); // Perform one final save when cleaning up
     };
   }, [counter, telegramUserId]);
 
-  // This component now just renders the routes, logic is handled above
+  // This component's only job is to render the page routes
   return <AppRoutes />;
 }
 
 
+// This is the main component for your entire application
 export default function App() {
-  // We put the loading screen logic back here in the main entry point
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // This timeout simulates your app loading assets, etc.
+    // This timeout shows your loading screen for 3 seconds on startup
     const timer = setTimeout(() => setIsLoading(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
+  // Show loading screen while isLoading is true
   if (isLoading) {
     return <LoadingScreen />;
   }
 
+  // Once loaded, render the entire application with its providers
   return (
     <CounterProvider>    
       <TonCoinProvider>

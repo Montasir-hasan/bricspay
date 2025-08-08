@@ -47,14 +47,34 @@ const Heading = () => {
     return () => clearInterval(interval);
   }, [setTonBalance, setCounter]);
 
-  // Increment counter locally every second by minerSpeed * 0.001
+  // Increment counter locally every second by minerSpeed * 0.000000001
   useEffect(() => {
     const miningInterval = setInterval(() => {
-      setCounter(prev => prev + minerSpeed * 0.00001);
+      setCounter(prev => prev + minerSpeed * 0.000000001);
     }, 1000);
 
     return () => clearInterval(miningInterval);
   }, [minerSpeed, setCounter]);
+
+  // Save mining progress to Firestore every 15 seconds
+  useEffect(() => {
+    if (!telegramUserId) return;
+
+    const saveInterval = setInterval(async () => {
+      try {
+        const userRef = doc(db, 'miningapp', telegramUserId.toString());
+        await updateDoc(userRef, {
+          counter: parseFloat(counter.toFixed(9)),
+          minerSpeed,
+          lastUpdated: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error("Failed to save mining data:", error);
+      }
+    }, 15000); // every 15 seconds
+
+    return () => clearInterval(saveInterval);
+  }, [telegramUserId, counter, minerSpeed]);
 
   // Handle claim button click
   const handleClaim = async () => {
@@ -157,4 +177,3 @@ const Heading = () => {
 };
 
 export default Heading;
-

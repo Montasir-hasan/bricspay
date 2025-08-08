@@ -18,7 +18,7 @@ const Heading = () => {
   const [showGreenAlert, setShowGreenAlert] = useState(false);
   const [isUpgradeModalVisible, setIsUpgradeModalVisible] = useState(false);
 
-  // Fetch user data initially and every 5 seconds to sync state
+  // Fetch user data initially and every 5 seconds
   useEffect(() => {
     const fetchCoinBalance = async () => {
       try {
@@ -29,12 +29,14 @@ const Heading = () => {
           if (userDoc.exists()) {
             const userData = userDoc.data();
             const currentBalance = userData.tonCoinBalance || 0;
-            const currentCounter = userData.counter || 0; 
-            const userMinerSpeed = userData.minerSpeed || 2; 
+            const fetchedCounter = userData.counter || 0; 
+            const userMinerSpeed = userData.minerSpeed || 2;
 
             setTonBalance(currentBalance);
-            setCounter(currentCounter); 
             setMinerSpeed(userMinerSpeed);
+
+            // Update local counter only if Firestore counter is greater
+            setCounter(prevCounter => (fetchedCounter > prevCounter ? fetchedCounter : prevCounter));
           }
         }
       } catch (error) {
@@ -76,7 +78,7 @@ const Heading = () => {
     return () => clearInterval(saveInterval);
   }, [telegramUserId, counter, minerSpeed]);
 
-  // Claim handler: adds mined tokens to user's balance and resets counter to 0
+  // Handle claim button click: adds mined tokens to balance, resets counter
   const handleClaim = async () => {
     try {
       const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;

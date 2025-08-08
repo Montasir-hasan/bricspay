@@ -7,7 +7,7 @@ import { db } from "../database/firebase";
 import "animate.css";
 import overlayImage from '../assets/ton.png';
 import UpgradeMiner from "./modal/UpgradeMiner.jsx";
-import {useCounter} from '../Components/Context/CounterContext.jsx';
+import { useCounter } from '../Components/Context/CounterContext.jsx';
 
 const Heading = () => {
   const { setTonBalance } = useTonCoin();
@@ -18,64 +18,77 @@ const Heading = () => {
   const [showGreenAlert, setShowGreenAlert] = useState(false);
   const [isUpgradeModalVisible, setIsUpgradeModalVisible] = useState(false);
 
+  // Fetch user data initially and periodically
   useEffect(() => {
     const fetchCoinBalance = async () => {
-      const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      setTelegramUserId(telegramUserId);
-  
-      if (telegramUserId) {
-        const userDoc = await getDoc(doc(db, 'miningapp', telegramUserId.toString()));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const currentBalance = userData.tonCoinBalance || 0;
-          const currentCounter = userData.counter || 0; 
-          const userMinerSpeed = userData.minerSpeed || 2; 
-  
-          setTonBalance(currentBalance);
-          setCounter(currentCounter); 
-          setMinerSpeed(userMinerSpeed); 
+      try {
+        const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        setTelegramUserId(id);
+        if (id) {
+          const userDoc = await getDoc(doc(db, 'miningapp', id.toString()));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const currentBalance = userData.tonCoinBalance || 0;
+            const currentCounter = userData.counter || 0; 
+            const userMinerSpeed = userData.minerSpeed || 2; 
+
+            setTonBalance(currentBalance);
+            setCounter(currentCounter); 
+            setMinerSpeed(userMinerSpeed);
+          }
         }
+      } catch (error) {
+        console.error("Failed to fetch coin balance:", error);
       }
     };
 
     fetchCoinBalance();
-    const interval = setInterval(fetchCoinBalance, 1000);
-
+    const interval = setInterval(fetchCoinBalance, 5000);  // fetch every 5 seconds
     return () => clearInterval(interval);
   }, [setTonBalance, setCounter]);
 
+  // Increment counter locally every second by minerSpeed * 0.001
+  useEffect(() => {
+    const miningInterval = setInterval(() => {
+      setCounter(prev => prev + minerSpeed * 0.001);
+    }, 1000);
 
+    return () => clearInterval(miningInterval);
+  }, [minerSpeed, setCounter]);
 
+  // Handle claim button click
   const handleClaim = async () => {
-    const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    setTelegramUserId(telegramUserId);
-    if (telegramUserId && counter >= 0.4) {
-      const userRef = doc(db, 'miningapp', telegramUserId.toString());
-      const userDoc = await getDoc(userRef);
-      if (userDoc.exists()) {
-        const currentBalance = userDoc.data().tonCoinBalance || 0;
-        const newBalance = parseFloat(currentBalance) + parseFloat(counter);
-        await updateDoc(userRef, { tonCoinBalance: parseFloat(newBalance.toFixed(9)), counter: 0 });
-        setTonBalance(newBalance);
-        setCounter(0.000000000); 
-        setShowGreenAlert(true);
-        setTimeout(() => {
-          setShowGreenAlert(false);
-        }, 2000);
-        
+    try {
+      const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      setTelegramUserId(id);
+      if (id && counter >= 0.4) {
+        const userRef = doc(db, 'miningapp', id.toString());
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const currentBalance = userDoc.data().tonCoinBalance || 0;
+          const newBalance = parseFloat(currentBalance) + parseFloat(counter);
+          await updateDoc(userRef, { tonCoinBalance: parseFloat(newBalance.toFixed(9)), counter: 0 });
+          setTonBalance(newBalance);
+          setCounter(0);
 
-        await addDoc(collection(db, 'claims'), {
-          userId: telegramUserId,
-          amount: counter,
-          date: new Date().toISOString(),
-          type: 'TON'
-        });
+          setShowGreenAlert(true);
+          setTimeout(() => setShowGreenAlert(false), 2000);
+
+          await addDoc(collection(db, 'claims'), {
+            userId: id,
+            amount: counter,
+            date: new Date().toISOString(),
+            type: 'TON'
+          });
+        }
+      } else {
+        setShowRedAlert(true);
+        setTimeout(() => setShowRedAlert(false), 2000);
       }
-    } else {
+    } catch (error) {
+      console.error("Claim failed:", error);
       setShowRedAlert(true);
-      setTimeout(() => {
-        setShowRedAlert(false);
-      }, 2000);
+      setTimeout(() => setShowRedAlert(false), 2000);
     }
   };
 
@@ -90,16 +103,16 @@ const Heading = () => {
   return (
     <>
       <div className="flex flex-col items-center justify-center pt-8 pb-[60px]">
-      {showRedAlert && (
+        {showRedAlert && (
           <div className="fixed top-5 left-0 w-full flex items-center justify-center px-3">
-            <div className={`bg-red-500 text-white py-2 rounded-lg text-center px-4`}>
+            <div className="bg-red-500 text-white py-2 rounded-lg text-center px-4">
               <h1>Too small amount, minimum claim 0.4 TON</h1>
             </div>
           </div>
         )}
         {showGreenAlert && (
           <div className="fixed top-5 left-0 w-full flex items-center justify-center px-3">
-            <div className={`bg-green-500 text-white py-2 rounded-lg text-center px-4`}>
+            <div className="bg-green-500 text-white py-2 rounded-lg text-center px-4">
               <h1>Claim Successful</h1>
             </div>
           </div>
@@ -127,7 +140,12 @@ const Heading = () => {
           >
             CLAIM TON
           </button>
-          <button className="bg-[#00A9ff] text-white rounded-lg px-8 py-4 flex-1 text-[12px] font-bold" onClick={handleUpgradeClick}>UPGRADE MINER</button>
+          <button
+            className="bg-[#00A9ff] text-white rounded-lg px-8 py-4 flex-1 text-[12px] font-bold"
+            onClick={handleUpgradeClick}
+          >
+            UPGRADE MINER
+          </button>
         </div>
       </div>
       <UpgradeMiner 
@@ -139,4 +157,3 @@ const Heading = () => {
 };
 
 export default Heading;
-

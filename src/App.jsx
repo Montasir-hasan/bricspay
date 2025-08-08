@@ -53,7 +53,7 @@ function AppLogic() {
       }
       // =================================================================
 
-      const difficultyFactor = 1000000; // This remains very high for slow mining
+      const difficultyFactor = 10000; // This remains very high for slow mining
       const dailyProfitFormula = minerSpeed / 100;
       const minedPerSecond = (dailyProfitFormula / difficultyFactor) / 86400;
 

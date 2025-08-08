@@ -18,7 +18,7 @@ const Heading = () => {
   const [showGreenAlert, setShowGreenAlert] = useState(false);
   const [isUpgradeModalVisible, setIsUpgradeModalVisible] = useState(false);
 
-  // Fetch user data initially and periodically
+  // Fetch user data initially and every 5 seconds to sync state
   useEffect(() => {
     const fetchCoinBalance = async () => {
       try {
@@ -43,14 +43,14 @@ const Heading = () => {
     };
 
     fetchCoinBalance();
-    const interval = setInterval(fetchCoinBalance, 5000);  // fetch every 5 seconds
+    const interval = setInterval(fetchCoinBalance, 5000);
     return () => clearInterval(interval);
   }, [setTonBalance, setCounter]);
 
-  // Increment counter locally every second by minerSpeed * 0.000000001
+  // Increment counter locally every second by minerSpeed * 0.00001 (unlimited increment)
   useEffect(() => {
     const miningInterval = setInterval(() => {
-      setCounter(prev => prev + minerSpeed * 0.000000001);
+      setCounter(prev => prev + minerSpeed * 0.00001);
     }, 1000);
 
     return () => clearInterval(miningInterval);
@@ -71,12 +71,12 @@ const Heading = () => {
       } catch (error) {
         console.error("Failed to save mining data:", error);
       }
-    }, 15000); // every 15 seconds
+    }, 15000);
 
     return () => clearInterval(saveInterval);
   }, [telegramUserId, counter, minerSpeed]);
 
-  // Handle claim button click
+  // Claim handler: adds mined tokens to user's balance and resets counter to 0
   const handleClaim = async () => {
     try {
       const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;

@@ -26,7 +26,7 @@ function AppLogic() {
       if (doc.exists()) {
         const userData = doc.data();
         setCounter(userData.counter || 0);
-        setMinerSpeed(userData.minerSpeed || 2); // Still needed for display
+        setMinerSpeed(userData.minerSpeed || 2);
         lastUpdateTimeRef.current = userData.lastUpdateTime || Date.now();
       }
     });
@@ -34,7 +34,7 @@ function AppLogic() {
     return () => unsubscribe();
   }, [setCounter, setMinerSpeed, setTelegramUserId]);
 
-  // 2. Simulate mining in the background with PRECISION MATH
+  // 2. Simulate mining in the background with an OFFLINE LIMIT
   useEffect(() => {
     if (!telegramUserId) return;
 
@@ -42,36 +42,29 @@ function AppLogic() {
       const now = Date.now();
       let elapsedSeconds = (now - lastUpdateTimeRef.current) / 1000;
 
-      const maxOfflineSeconds = 7200; // 2 hours offline limit
+      // =================================================================
+      //  NEW: OFFLINE MINING LIMIT
+      //  This prevents the huge "catch-up" jump after being away for a long time.
+      //  The value is in seconds. 7200 seconds = 2 hours.
+      // =================================================================
+      const maxOfflineSeconds = 7200; // <-- SET YOUR OFFLINE LIMIT HERE (e.g., 2 hours)
       if (elapsedSeconds > maxOfflineSeconds) {
         elapsedSeconds = maxOfflineSeconds;
       }
-      
       // =================================================================
-      //  PRECISION MATH FIX FOR VERY SLOW MINING SPEED
-      // =================================================================
-      // The fixed rate per second.
-      const minedPerSecond = 0.000000001;
+
+      const difficultyFactor = 1000000; // This remains very high for slow mining
+      const dailyProfitFormula = minerSpeed / 100;
+      const minedPerSecond = (dailyProfitFormula / difficultyFactor) / 86400;
+
       const newMinedAmount = elapsedSeconds * minedPerSecond;
-      
-      // Update state with a function to ensure we always have the latest value
-      setCounter(prevCounter => {
-        // To avoid JavaScript precision errors with small decimals, we work with integers
-        // Multiply both numbers by 10^9 to make them whole, add them, then divide back.
-        const prevCounterAsInteger = Math.round(prevCounter * 1e9);
-        const newMinedAsInteger = Math.round(newMinedAmount * 1e9);
-        
-        const newTotalAsInteger = prevCounterAsInteger + newMinedAsInteger;
-        
-        return newTotalAsInteger / 1e9; // Convert back to a decimal
-      });
-      // =================================================================
-      
+
+      setCounter(prevCounter => prevCounter + newMinedAmount);
       lastUpdateTimeRef.current = now;
-    }, 1000); // This loop runs every second
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [telegramUserId, setCounter]); // minerSpeed is removed from dependencies as it's not used in calculation
+  }, [telegramUserId, minerSpeed, setCounter]);
 
   // 3. Periodically save progress to the database
   useEffect(() => {

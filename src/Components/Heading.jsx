@@ -2,7 +2,7 @@ import { useTonCoin } from "./Context/TonCoinContext.jsx";
 import mainlogo from '../assets/fan.png';
 import { useState, useEffect } from "react";
 import '../App.css';
-import { doc, getDoc, updateDoc, collection, addDoc } from "@firebase/firestore"; 
+import { doc, getDoc, updateDoc, collection, addDoc, setDoc } from "@firebase/firestore"; 
 import { db } from "../database/firebase";
 import "animate.css";
 import overlayImage from '../assets/ton.png';
@@ -23,21 +23,34 @@ const Heading = () => {
     const fetchCoinBalance = async () => {
       try {
         const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        if (!id) return;
+
         setTelegramUserId(id);
-        if (id) {
-          const userDoc = await getDoc(doc(db, 'miningapp', id.toString()));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const currentBalance = userData.tonCoinBalance || 0;
-            const fetchedCounter = userData.counter || 0; 
-            const userMinerSpeed = userData.minerSpeed || 2;
+        const userDocRef = doc(db, 'miningapp', id.toString());
+        const userDoc = await getDoc(userDocRef);
 
-            setTonBalance(currentBalance);
-            setMinerSpeed(userMinerSpeed);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const currentBalance = userData.tonCoinBalance || 0;
+          const fetchedCounter = userData.counter || 0; 
+          const userMinerSpeed = userData.minerSpeed || 2;
 
-            // Update local counter only if Firestore counter is greater
-            setCounter(prevCounter => (fetchedCounter > prevCounter ? fetchedCounter : prevCounter));
-          }
+          setTonBalance(currentBalance);
+          setMinerSpeed(userMinerSpeed);
+
+          // Update local counter only if Firestore counter is greater
+          setCounter(prevCounter => (fetchedCounter > prevCounter ? fetchedCounter : prevCounter));
+        } else {
+          // New user doc creation to avoid errors on update later
+          await setDoc(userDocRef, {
+            tonCoinBalance: 0,
+            counter: 0,
+            minerSpeed: 2,
+            lastUpdated: new Date().toISOString(),
+          });
+          setTonBalance(0);
+          setCounter(0);
+          setMinerSpeed(2);
         }
       } catch (error) {
         console.error("Failed to fetch coin balance:", error);
@@ -82,14 +95,22 @@ const Heading = () => {
   const handleClaim = async () => {
     try {
       const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (!id) return;
+
       setTelegramUserId(id);
-      if (id && counter >= 0.4) {
+
+      if (counter >= 0.4) {
         const userRef = doc(db, 'miningapp', id.toString());
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
           const currentBalance = userDoc.data().tonCoinBalance || 0;
           const newBalance = parseFloat(currentBalance) + parseFloat(counter);
-          await updateDoc(userRef, { tonCoinBalance: parseFloat(newBalance.toFixed(9)), counter: 0 });
+
+          await updateDoc(userRef, {
+            tonCoinBalance: parseFloat(newBalance.toFixed(9)),
+            counter: 0,
+          });
+
           setTonBalance(newBalance);
           setCounter(0);
 

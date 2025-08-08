@@ -10,11 +10,11 @@ import LoadingScreen from './Components/Loader.jsx';
 
 // This component holds the persistent logic and doesn't render anything itself
 function AppLogic() {
+  // We still get minerSpeed to display it, even though we won't use it in calculations
   const { setCounter, setMinerSpeed, setTelegramUserId, counter, minerSpeed, telegramUserId } = useCounter();
   const lastUpdateTimeRef = useRef(Date.now());
 
   // 1. Set up real-time listener for user data from Firebase
-  // This hook runs once and keeps the connection open to receive live updates.
   useEffect(() => {
     const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
     if (!userId) return;
@@ -27,32 +27,33 @@ function AppLogic() {
       if (doc.exists()) {
         const userData = doc.data();
         setCounter(userData.counter || 0);
-        setMinerSpeed(userData.minerSpeed || 2);
+        setMinerSpeed(userData.minerSpeed || 2); // Still needed for display
         lastUpdateTimeRef.current = userData.lastUpdateTime || Date.now();
       }
     });
 
-    // This cleans up the listener when the app is fully closed.
     return () => unsubscribe();
   }, [setCounter, setMinerSpeed, setTelegramUserId]);
 
-  // 2. Simulate mining in the background
-  // This logic runs continuously as long as the app is open.
+  // 2. Simulate mining in the background with a FIXED speed
   useEffect(() => {
-    if (!telegramUserId) return; // Wait for user ID before starting
+    if (!telegramUserId) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const elapsedSeconds = (now - lastUpdateTimeRef.current) / 1000;
+      let elapsedSeconds = (now - lastUpdateTimeRef.current) / 1000;
+
+      const maxOfflineSeconds = 7200; // 2 hours offline limit
+      if (elapsedSeconds > maxOfflineSeconds) {
+        elapsedSeconds = maxOfflineSeconds;
+      }
 
       // =================================================================
-      //  MINING SPEED CONTROL
-      //  This value is now set to 1000000 to make the mining speed 
-      //  100 times slower than the previous version.
+      //  FIXED MINING SPEED
+      //  The mining rate is now a constant value and ignores the user's
+      //  minerSpeed (Ghz). This provides exactly 0.000000001 TON per second.
       // =================================================================
-      const difficultyFactor = 1000000; // <-- SPEED IS NOW 1000x SLOWER
-      const dailyProfitFormula = minerSpeed / 100;
-      const minedPerSecond = (dailyProfitFormula / difficultyFactor) / 86400; // 86400 seconds in a day
+      const minedPerSecond = 0.000000001;
       // =================================================================
 
       const newMinedAmount = elapsedSeconds * minedPerSecond;
@@ -61,15 +62,15 @@ function AppLogic() {
       lastUpdateTimeRef.current = now;
     }, 1000); // This loop runs every second
 
-    return () => clearInterval(interval); // Cleanup on component change
-  }, [telegramUserId, minerSpeed, setCounter]);
+    // We remove minerSpeed from the dependency array as it no longer affects the calculation
+    return () => clearInterval(interval);
+  }, [telegramUserId, setCounter]);
 
-  // 3. Periodically save progress to the database to prevent data loss
+  // 3. Periodically save progress to the database
   useEffect(() => {
     if (!telegramUserId) return;
 
     const saveProgress = async () => {
-      // We check the counter from the state to save the latest value
       if (counter > 0) {
         const userRef = doc(db, 'miningapp', telegramUserId);
         await updateDoc(userRef, {
@@ -79,22 +80,17 @@ function AppLogic() {
       }
     };
     
-    // Save progress every 10 seconds
     const saveInterval = setInterval(saveProgress, 10000);
-    
-    // Also save progress right before the user closes the app
     const handleBeforeUnload = () => saveProgress();
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Cleanup function to stop the interval and listener
     return () => {
       clearInterval(saveInterval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      saveProgress(); // Perform one final save when cleaning up
+      saveProgress();
     };
   }, [counter, telegramUserId]);
 
-  // This component's only job is to render the page routes
   return <AppRoutes />;
 }
 
@@ -104,17 +100,14 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // This timeout shows your loading screen for 3 seconds on startup
     const timer = setTimeout(() => setIsLoading(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Show loading screen while isLoading is true
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // Once loaded, render the entire application with its providers
   return (
     <CounterProvider>    
       <TonCoinProvider>

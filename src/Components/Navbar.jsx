@@ -5,7 +5,7 @@ import shib from '../assets/shib.png';
 import ModalTON from './modal/Withdrawton';
 import ModalSHIB from './modal/Withdrawshib';
 import { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc } from "@firebase/firestore"; 
+import { doc, onSnapshot, updateDoc } from "@firebase/firestore"; 
 import { db } from "../database/firebase";
 
 const Navbar = () => {
@@ -19,25 +19,24 @@ const Navbar = () => {
   const [shibPrice, setShibPrice] = useState(0);
 
   useEffect(() => {
-    const fetchBalances = async () => {
-      const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      setTelegramUserId(telegramUserId);
+    const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    setTelegramUserId(telegramUserId);
 
-      if (telegramUserId) {
-        const userRef = doc(db, 'miningapp', telegramUserId.toString());
-        const userDoc = await getDoc(userRef);
+    if (!telegramUserId) return;
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setTonBalance(userData.tonCoinBalance || 0);
-          setShibBalance(userData.shibCoinBalance || 0);
-        }
+    const userRef = doc(db, 'miningapp', telegramUserId.toString());
+
+    // Listen for live updates
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const userData = snapshot.data();
+        setTonBalance(userData.tonCoinBalance || 0);
+        setShibBalance(userData.shibCoinBalance || 0);
       }
-    };
+    });
 
-    fetchBalances();
+    return () => unsubscribe();
   }, [setTonBalance, setShibBalance]);
-
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -58,8 +57,6 @@ const Navbar = () => {
 
     fetchPrices();
   }, []);
-
-
 
   const handleWithdrawClick = (type) => {
     setModalType(type);
@@ -82,10 +79,13 @@ const Navbar = () => {
   const handleWithdraw = async () => {
     if (telegramUserId) {
       const userRef = doc(db, 'miningapp', telegramUserId.toString());
-      const userDoc = await getDoc(userRef);
+      // No need to fetch userDoc here again because onSnapshot keeps data fresh,
+      // but keeping it for safety
 
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
+      const userDocSnapshot = await getDoc(userRef);
+
+      if (userDocSnapshot.exists()) {
+        const userData = userDocSnapshot.data();
         if (modalType === 'TON') {
           const newBalance = userData.tonCoinBalance - parseFloat(amount);
           await updateDoc(userRef, { tonCoinBalance: newBalance });
@@ -174,4 +174,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

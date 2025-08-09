@@ -5,7 +5,7 @@ import shib from '../assets/shib.png';
 import ModalTON from './modal/Withdrawton';
 import ModalSHIB from './modal/Withdrawshib';
 import { useState, useEffect } from "react";
-import { doc, onSnapshot, updateDoc } from "@firebase/firestore"; 
+import { doc, onSnapshot, updateDoc, getDoc } from "@firebase/firestore";
 import { db } from "../database/firebase";
 
 const Navbar = () => {
@@ -174,3 +174,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

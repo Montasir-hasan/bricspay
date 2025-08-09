@@ -86,7 +86,7 @@ const Heading = () => {
   // Mining increment every second (live mining)
   useEffect(() => {
     const miningInterval = setInterval(() => {
-      setCounter(prev => prev + minerSpeedRef.current * 0.00001);
+      setCounter(prev => prev + minerSpeedRef.current * 0.000000001);
     }, 1000);
 
     return () => clearInterval(miningInterval);
@@ -244,5 +244,6 @@ const Heading = () => {
 };
 
 export default Heading;
+
 
 

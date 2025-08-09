@@ -1,4 +1,4 @@
-import UpgradeMiner from '../pages/UpgradeMiner';
+import UpgradeMiner from '../Components/modal/UpgradeMiner';
 
 const Wallet = () => {
   // no need for modal state if you want it always visible
@@ -12,4 +12,5 @@ const Wallet = () => {
 };
 
 export default Wallet;
+
 

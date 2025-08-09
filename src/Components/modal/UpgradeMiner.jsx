@@ -95,7 +95,7 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
     }
   }, [wallet]);
 
-  if (!isVisible) return null;
+  
 
   const handleMinerClick = (miner) => {
     setSelectedMiner(miner);
@@ -245,6 +245,7 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
 };
 
 export default UpgradeMiner;
+
 
 
 

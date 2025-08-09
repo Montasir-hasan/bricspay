@@ -67,7 +67,7 @@ const miners = [
   },
 ];
 
-const UpgradeMiner = ({ isVisible, onClose }) => {
+const UpgradeMiner = () => {
   const [selectedMiner, setSelectedMiner] = useState(miners[0]);
   const wallet = useTonWallet();
   const userAddress = useTonAddress();
@@ -93,42 +93,36 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
     if (wallet) {
       storeWalletAddress(userAddress);
     }
-  }, [wallet]);
-
-  if (!isVisible) return null;
-
-  const handleMinerClick = (miner) => {
-    setSelectedMiner(miner);
-  };
+  }, [wallet, userAddress]);
 
   const toNano = (amount) => {
-    return BigInt(Math.floor(amount * 1e9)); 
+    return BigInt(Math.floor(amount * 1e9));
   };
 
   const transferTon = async (amount) => {
     if (!wallet) {
-      alert("Please connect your wallet to proceed.");
+      setShowRedAlert(true);
+      setTimeout(() => setShowRedAlert(false), 2000);
       return;
     }
 
     try {
       const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 600, 
+        validUntil: Math.floor(Date.now() / 1000) + 600,
         messages: [
           {
-            address: recipientAddress, 
-            amount: toNano(amount).toString(), 
+            address: recipientAddress,
+            amount: toNano(amount).toString(),
             body: `Transfer ${amount} TON`
           }
         ]
       };
 
       await tonConnectUI.sendTransaction(transaction);
-      
+
       setShowGreenAlert(true);
-      setTimeout(() => {
-        setShowGreenAlert(false);
-      }, 2000);
+      setTimeout(() => setShowGreenAlert(false), 2000);
+
       const telegramUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
       if (telegramUserId) {
         const userDoc = doc(db, 'miningapp', telegramUserId.toString());
@@ -140,15 +134,14 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
           await updateDoc(userDoc, {
             rentedMiner: selectedMiner.name,
             minerLevel: selectedMiner.id,
-            rentEndDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), 
+            rentEndDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
             counter: newCounter.toFixed(9),
-            minerSpeed: selectedMiner.speed, 
+            minerSpeed: selectedMiner.speed,
           });
         } else {
           console.error("User document does not exist!");
         }
       }
-
     } catch (error) {
       console.error(`Transfer of ${amount} TON failed:`, error);
       alert(`Transfer of ${amount} TON failed. Please try again.`);
@@ -156,96 +149,91 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
   };
 
   const handleRentMiner = () => {
-    if (!wallet) {
-      setShowRedAlert(true);
-      setTimeout(() => {
-        setShowRedAlert(false);
-      }, 2000);
-      return;
-    }
     transferTon(selectedMiner.price);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 px-3">
+    <div className="max-w-4xl mx-auto p-6 bg-black rounded-lg border border-zinc-900 text-white">
       {showGreenAlert && (
-          <div className="fixed top-10 left-0 w-full flex items-center justify-center px-3">
-            <div className={`bg-green-500 text-white py-2 rounded-lg text-center px-4`}>
-              <h1>Successful Rented Miner</h1>
-            </div>
-          </div>
-        )}
-        {showRedAlert && (
-          <div className="fixed top-10 left-0 w-full flex items-center justify-center px-3">
-            <div className={`bg-red-500 text-white py-2 rounded-lg text-center px-4`}>
-              <h1>Please Connect Your TON Wallet</h1>
-            </div>
-          </div>
-        )}
-      <div className="bg-black rounded-lg border-zinc-900 border px-4 py-6">
-        <h1 className="text-xl font-bold mb-4 text-white text-center">Upgrade Miner</h1>
-        <p className="mb-6 text-white">You will be able to earn approximately <span className='text-[#00A9FF] font-bold'>12%</span> profit per day and <span className='text-[#00A9FF] font-bold'>170%</span> profit in 30 days by renting a Turbo.</p>
-        <div className="grid grid-cols-2 gap-2">
-          {miners.map((miner) => (
-            <div
-              key={miner.id}
-              className={`border border-gray-700 py-2 rounded-lg text-center flex flex-row items-center gap-2 px-2 cursor-pointer ${selectedMiner && selectedMiner.id === miner.id ? 'bg-[#00A9ff]' : ''}`}
-              onClick={() => handleMinerClick(miner)}
-            >
-              <img src={miner.image} alt={miner.name} className="w-8" />
-              <div>
-                <h1 className="text-white text-start text-[12px] font-semibold">{miner.name}</h1>
-                <div className='flex gap-2 items-center'>
-                  <p className="text-white text-[12px] font-semibold">{miner.speed} GH/s</p>
-                  <img className='w-4 h-4' src={power} alt="icon" />
-                </div>
+        <div className="mb-4 p-3 bg-green-600 rounded text-center font-bold">
+          Successful Rented Miner
+        </div>
+      )}
+      {showRedAlert && (
+        <div className="mb-4 p-3 bg-red-600 rounded text-center font-bold">
+          Please Connect Your TON Wallet
+        </div>
+      )}
+
+      <h1 className="text-2xl font-bold mb-4 text-center">Upgrade Miner</h1>
+      <p className="mb-6 text-center text-white">
+        You will be able to earn approximately <span className='text-[#00A9FF] font-bold'>12%</span> profit per day and <span className='text-[#00A9FF] font-bold'>170%</span> profit in 30 days by renting a Turbo.
+      </p>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {miners.map((miner) => (
+          <div
+            key={miner.id}
+            className={`border border-gray-700 py-2 rounded-lg cursor-pointer flex items-center gap-3 px-3
+              ${selectedMiner.id === miner.id ? 'bg-[#00A9FF]' : ''}`}
+            onClick={() => setSelectedMiner(miner)}
+          >
+            <img src={miner.image} alt={miner.name} className="w-10" />
+            <div>
+              <h2 className="text-white font-semibold text-sm">{miner.name}</h2>
+              <div className='flex gap-2 items-center text-xs'>
+                <p>{miner.speed} GH/s</p>
+                <img className='w-4 h-4' src={power} alt="power icon" />
               </div>
             </div>
-          ))}
-        </div>
-        {selectedMiner && (
-          <div className='w-full py-3'>
-            <div className='flex justify-between text-white'>
-              <p className='opacity-50'>Minting Speed</p>
-              <h1>{selectedMiner.speed} GH/s</h1>
-            </div>
-            <div className='flex justify-between text-white'>
-              <p className='opacity-50'>Rent Period</p>
-              <h1>90 days</h1>
-            </div>
-            <div className='flex justify-between text-white'>
-              <p className='opacity-50'>Rent Price</p>
-              <h1>{selectedMiner.price} TON</h1>
-            </div>
-            <div className='flex justify-between text-white'>
-              <p className='text-[#45AEF5] font-bold'>90 Days Profit 🔥</p>
-              <h1>{selectedMiner.monthlyProfit}</h1>
-            </div>
-            <div className='flex justify-between text-white'>
-              <p className='text-[#45AEF5] font-bold'>Daily 🔥</p>
-              <h1>{selectedMiner.dailyProfit}</h1>
-            </div>
           </div>
-          
-        )}
-        <div className='text-white'>
-            <h1 className='opacity-50'>Total Renting Price</h1>
-            <h1 className='text-center'>{selectedMiner.price} TON</h1>
+        ))}
+      </div>
+
+      {selectedMiner && (
+        <div className="space-y-2 mb-6">
+          <div className="flex justify-between opacity-70 text-sm">
+            <span>Minting Speed</span>
+            <span>{selectedMiner.speed} GH/s</span>
+          </div>
+          <div className="flex justify-between opacity-70 text-sm">
+            <span>Rent Period</span>
+            <span>90 days</span>
+          </div>
+          <div className="flex justify-between opacity-70 text-sm">
+            <span>Rent Price</span>
+            <span>{selectedMiner.price} TON</span>
+          </div>
+          <div className="flex justify-between text-[#45AEF5] font-bold">
+            <span>90 Days Profit 🔥</span>
+            <span>{selectedMiner.monthlyProfit}</span>
+          </div>
+          <div className="flex justify-between text-[#45AEF5] font-bold">
+            <span>Daily 🔥</span>
+            <span>{selectedMiner.dailyProfit}</span>
+          </div>
         </div>
-        <div className="flex flex-row justify-between px-3 gap-4 w-full mt-4">
-          <button onClick={onClose} className="bg-zinc-900 text-[#00A9FF] rounded-lg px-8 py-2 flex-1 text-[12px] font-bold">Later</button>
-          <button onClick={handleRentMiner} className="bg-[#00A9ff] text-white rounded-lg px-8 py-2 flex-1 text-[12px] font-bold">Rent Miner</button>
-        </div>
-        <div className="mt-4 justify-center items-center flex">
-          <TonConnectButton />
-        </div>
+      )}
+
+      <div className="text-center mb-6">
+        <p className="opacity-70">Total Renting Price</p>
+        <h2 className="text-3xl font-bold">{selectedMiner.price} TON</h2>
+      </div>
+
+      <div className="flex justify-center gap-4">
+        <button
+          onClick={handleRentMiner}
+          className="bg-[#00A9FF] hover:bg-[#008fcc] transition text-white px-6 py-3 rounded font-semibold"
+        >
+          Rent Miner
+        </button>
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <TonConnectButton />
       </div>
     </div>
   );
 };
 
 export default UpgradeMiner;
-
-
-
-

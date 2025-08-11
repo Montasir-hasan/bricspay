@@ -7,7 +7,7 @@ import minerImage5 from '../assets/miner-5.png';
 import minerImage6 from '../assets/miner-6.png';
 import power from '../assets/power.webp';
 import { doc, getDoc, updateDoc } from "@firebase/firestore";
-import { db } from "../../database/firebase";
+import { db } from "../database/firebase";
 import { TonConnectButton, useTonWallet, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 
 const miners = [
@@ -237,5 +237,6 @@ const UpgradeMiner = () => {
 };
 
 export default UpgradeMiner;
+
 
 

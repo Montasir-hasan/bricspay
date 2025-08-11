@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import minerImage1 from '../assets/minerImage1'; 
-import minerImage2 from '../assets/minerImage2';
-import minerImage3 from '../assets/minerImage3';
-import minerImage4 from '../assets/miner-4';
-import minerImage5 from '../../assets/miner-5';
-import minerImage6 from '../../assets/miner-6';
-import power from '../assets/power';
+import minerImage1 from '../assets/miner-1.webp';
+import minerImage2 from '../assets/miner-2.webp';
+import minerImage3 from '../assets/miner-3.webp';
+import minerImage4 from '../assets/miner-4.webp';
+import minerImage5 from '../assets/miner-5.png';
+import minerImage6 from '../assets/miner-6.png';
+import power from '../assets/power.webp';
 import { doc, getDoc, updateDoc } from "@firebase/firestore";
 import { db } from "../../database/firebase";
 import { TonConnectButton, useTonWallet, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
@@ -237,4 +237,5 @@ const UpgradeMiner = () => {
 };
 
 export default UpgradeMiner;
+
 

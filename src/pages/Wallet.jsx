@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import BackButton from '../Components/BackButton';
+
 import minerImage1 from '../assets/miner-1.webp';
 import minerImage2 from '../assets/miner-2.webp';
 import minerImage3 from '../assets/miner-3.webp';
@@ -6,65 +9,19 @@ import minerImage4 from '../assets/miner-4.webp';
 import minerImage5 from '../assets/miner-5.png';
 import minerImage6 from '../assets/miner-6.png';
 import power from '../assets/power.webp';
+
 import { doc, getDoc, updateDoc } from "@firebase/firestore";
 import { db } from "../database/firebase";
+
 import { TonConnectButton, useTonWallet, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 
 const miners = [
-  {
-    id: 1,
-    name: 'Free',
-    speed: 2,
-    price: 0,
-    dailyProfit: '0.02 TON',
-    monthlyProfit: '1.8 TON',
-    image: minerImage1,
-  },
-  {
-    id: 2,
-    name: 'TON Silver',
-    speed: 20,
-    price: 1,
-    dailyProfit: '0.2 TON',
-    monthlyProfit: '18 TON',
-    image: minerImage2,
-  },
-  {
-    id: 3,
-    name: 'TON Gold',
-    speed: 100,
-    price: 5,
-    dailyProfit: '1 TON',
-    monthlyProfit: '90 TON',
-    image: minerImage3,
-  },
-  {
-    id: 4,
-    name: 'TON Diamond',
-    speed: 600,
-    price: 25,
-    dailyProfit: '6 TON',
-    monthlyProfit: '540 TON',
-    image: minerImage4,
-  },
-  {
-    id: 5,
-    name: 'TON Platinum',
-    speed: 1300,
-    price: 50,
-    dailyProfit: '13 TON',
-    monthlyProfit: '1170 TON',
-    image: minerImage5,
-  },
-  {
-    id: 6,
-    name: 'TON VIP',
-    speed: 3000,
-    price: 100,
-    dailyProfit: '30 TON',
-    monthlyProfit: '2700 TON',
-    image: minerImage6,
-  },
+  { id: 1, name: 'Free', speed: 2, price: 0, dailyProfit: '0.02 TON', monthlyProfit: '1.8 TON', image: minerImage1 },
+  { id: 2, name: 'TON Silver', speed: 20, price: 1, dailyProfit: '0.2 TON', monthlyProfit: '18 TON', image: minerImage2 },
+  { id: 3, name: 'TON Gold', speed: 100, price: 5, dailyProfit: '1 TON', monthlyProfit: '90 TON', image: minerImage3 },
+  { id: 4, name: 'TON Diamond', speed: 600, price: 25, dailyProfit: '6 TON', monthlyProfit: '540 TON', image: minerImage4 },
+  { id: 5, name: 'TON Platinum', speed: 1300, price: 50, dailyProfit: '13 TON', monthlyProfit: '1170 TON', image: minerImage5 },
+  { id: 6, name: 'TON VIP', speed: 3000, price: 100, dailyProfit: '30 TON', monthlyProfit: '2700 TON', image: minerImage6 },
 ];
 
 const UpgradeMiner = () => {
@@ -72,6 +29,9 @@ const UpgradeMiner = () => {
   const wallet = useTonWallet();
   const userAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
+
+  const navigate = useNavigate();
+
   const recipientAddress = "UQBykGhRyRohbxDbtGrd7CWZAqgE0VIhObOq6lqlh1IdYblQ";
   const [showGreenAlert, setShowGreenAlert] = useState(false);
   const [showRedAlert, setShowRedAlert] = useState(false);
@@ -94,6 +54,10 @@ const UpgradeMiner = () => {
       storeWalletAddress(userAddress);
     }
   }, [wallet, userAddress]);
+
+  const handleBackButtonClick = () => {
+    navigate(-1);
+  };
 
   const toNano = (amount) => {
     return BigInt(Math.floor(amount * 1e9));
@@ -153,7 +117,10 @@ const UpgradeMiner = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-black rounded-lg border border-zinc-900 text-white">
+    <div className="max-w-4xl mx-auto p-6 bg-black rounded-lg border border-zinc-900 text-white min-h-screen">
+      {/* Render your Telegram native back button */}
+      <BackButton navigateBack={handleBackButtonClick} />
+
       {showGreenAlert && (
         <div className="mb-4 p-3 bg-green-600 rounded text-center font-bold">
           Successful Rented Miner
@@ -237,6 +204,3 @@ const UpgradeMiner = () => {
 };
 
 export default UpgradeMiner;
-
-
-

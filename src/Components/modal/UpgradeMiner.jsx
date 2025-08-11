@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BackButton from '../Components/BackButton';  // adjust path if needed
+import BackButton from '../BackButton';  // adjust path if needed
 
 import minerImage1 from '../../assets/miner-1.webp'; 
 import minerImage2 from '../../assets/miner-2.webp';
@@ -217,3 +217,4 @@ const UpgradeMiner = ({ isVisible, onClose }) => {
 };
 
 export default UpgradeMiner;
+

@@ -22,7 +22,7 @@ const Earn = () => {
   const [remainingTasks, setRemainingTasks] = useState(0);
 
   const tasks = [
-    { task: 'telegramJoin', link: 'https://t.me/CryptocurrencyClubGroup', label: 'Join Telegram Earn', reward: 500, requiredInvites: 0 },
+    { task: 'telegramJoin', link: 'https://t.me/CryptocurrencyClubGroup', label: 'Join Telegram Earn', reward: 5000000, requiredInvites: 0 },
     { task: 'twitter', link: 'https://x.com/BricsPayToken', label: 'Follow Twitter Earn', reward: 500, requiredInvites: 0 },
     { task: 'instagram', link: '', label: 'Follow Instagram Earn', reward: 500, requiredInvites: 0 },
     { task: 'youtube', link: '', label: 'Subscribe YouTube Earn', reward: 500, requiredInvites: 0 },
@@ -154,4 +154,5 @@ const Earn = () => {
 };
 
 export default Earn;
+
 

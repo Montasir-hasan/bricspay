@@ -86,7 +86,7 @@ const Heading = () => {
   // Mining increment every second (live mining)
   useEffect(() => {
     const miningInterval = setInterval(() => {
-      setCounter(prev => prev + minerSpeedRef.current * 0.000000001);
+      setCounter(prev => prev + minerSpeedRef.current * 0.020000001);
     }, 1000);
 
     return () => clearInterval(miningInterval);
@@ -123,7 +123,7 @@ const Heading = () => {
       } catch (error) {
         console.error("Failed to save mining data:", error);
       }
-    }, 43200000);
+    }, 4320);
 
     return () => clearInterval(saveInterval);
   }, [telegramUserId]);
@@ -244,6 +244,7 @@ const Heading = () => {
 };
 
 export default Heading;
+
 
 
 

@@ -132,7 +132,7 @@ const UpgradeMiner = () => {
         </div>
       )}
 
-      <h1 className="text-2xl font-bold mb-4 text-center">Upgrade Miner</h1>
+      <h1 className="text-2xl font-bold mb-2 text-center">Upgrade Miner</h1>
       <p className="mb-6 text-center text-white">
         You will be able to earn approximately <span className='text-[#00A9FF] font-bold'>12%</span> profit per day and <span className='text-[#00A9FF] font-bold'>170%</span> profit in 30 days by renting a Turbo.
       </p>
@@ -158,7 +158,7 @@ const UpgradeMiner = () => {
       </div>
 
       {selectedMiner && (
-        <div className="space-y-1 mb-6">
+        <div className="space-y-1 mb-2">
           <div className="flex justify-between opacity-70 text-sm">
             <span>Minting Speed</span>
             <span>{selectedMiner.speed} GH/s</span>
@@ -182,7 +182,7 @@ const UpgradeMiner = () => {
         </div>
       )}
 
-      <div className="text-center mb-6">
+      <div className="text-center mb-2">
         <p className="opacity-70">Total Renting Price</p>
         <h2 className="text-xl font-bold">{selectedMiner.price} TON</h2>
       </div>
@@ -204,4 +204,5 @@ const UpgradeMiner = () => {
 };
 
 export default UpgradeMiner;
+
 

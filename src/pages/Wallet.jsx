@@ -187,16 +187,16 @@ const UpgradeMiner = () => {
         <h2 className="text-xl font-bold">{selectedMiner.price} TON</h2>
       </div>
 
-      <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-2">
         <button
           onClick={handleRentMiner}
-          className="bg-[#00A9FF] hover:bg-[#008fcc] transition text-white px-6 py-3 rounded font-semibold"
+          className="bg-[#00A9FF] hover:bg-[#008fcc] transition text-white px-3 py-1 rounded font-semibold"
         >
           Rent Miner
         </button>
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-2 flex justify-center">
         <TonConnectButton />
       </div>
     </div>
@@ -204,6 +204,7 @@ const UpgradeMiner = () => {
 };
 
 export default UpgradeMiner;
+
 
 
 

@@ -137,15 +137,15 @@ const UpgradeMiner = () => {
         You will be able to earn approximately <span className='text-[#00A9FF] font-bold'>12%</span> profit per day and <span className='text-[#00A9FF] font-bold'>170%</span> profit in 30 days by renting a Turbo.
       </p>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-2 mb-6">
         {miners.map((miner) => (
           <div
             key={miner.id}
-            className={`border border-gray-700 py-2 rounded-lg cursor-pointer flex items-center gap-3 px-3
+            className={`border border-gray-700 py-2 rounded-lg cursor-pointer flex items-center gap-2 px-2
               ${selectedMiner.id === miner.id ? 'bg-[#00A9FF]' : ''}`}
             onClick={() => setSelectedMiner(miner)}
           >
-            <img src={miner.image} alt={miner.name} className="w-10" />
+            <img src={miner.image} alt={miner.name} className="w-8" />
             <div>
               <h2 className="text-white font-semibold text-sm">{miner.name}</h2>
               <div className='flex gap-2 items-center text-xs'>
@@ -204,5 +204,6 @@ const UpgradeMiner = () => {
 };
 
 export default UpgradeMiner;
+
 
 

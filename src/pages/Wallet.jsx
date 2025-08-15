@@ -158,7 +158,7 @@ const UpgradeMiner = () => {
       </div>
 
       {selectedMiner && (
-        <div className="space-y-2 mb-6">
+        <div className="space-y-1 mb-6">
           <div className="flex justify-between opacity-70 text-sm">
             <span>Minting Speed</span>
             <span>{selectedMiner.speed} GH/s</span>
@@ -184,7 +184,7 @@ const UpgradeMiner = () => {
 
       <div className="text-center mb-6">
         <p className="opacity-70">Total Renting Price</p>
-        <h2 className="text-3xl font-bold">{selectedMiner.price} TON</h2>
+        <h2 className="text-xl font-bold">{selectedMiner.price} TON</h2>
       </div>
 
       <div className="flex justify-center gap-4">
@@ -204,3 +204,4 @@ const UpgradeMiner = () => {
 };
 
 export default UpgradeMiner;
+
